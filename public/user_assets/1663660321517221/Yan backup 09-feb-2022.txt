@@ -1,0 +1,1504 @@
+
+Yan backup 09-feb-2022
+
+/* 
+//Before 30-DEC-2021
+
+Result = Collection();
+error = Collection();
+formDetails = Map();
+formDetails = recordDetails;
+//info formDetails;
+Leavetype = formDetails.get("Leavetype");
+Personal_Leave_Type = formDetails.get("Personal_Leave_Type");
+Daystaken = formDetails.get("Daystaken");
+Medical_Certificate_Required = formDetails.get("Medical_Certificate_Required");
+//Employee_ID = formDetails.get("Employee_ID");
+//additionalDetails = recordDetails.get("additionalDetails");
+//empid = additionalDetails.get("empid");
+// // Carer Leave start here 
+//error.insert("errors":"tar");
+//return error;
+if(Leavetype == "Long Service Leave")
+{
+Date5years = dateofjoining.addYear(5);
+Date10years = dateofjoining.addYear(10);
+//var = toString(Date5years,"dd-MMM-yy");
+var = toDate(from1,"dd-MMM-yyyy");
+if(var < Date5years)
+{
+Result.insert("Leavetype":"Long service leave cant applied before 5 years of service");
+error.insert("errors":Result);
+}
+if(var > Date5years && var < Date10years)
+{
+if(Daystaken > 32.5)
+{
+// 	Result.insert("Leavetype":"daytaken" + Daystaken);
+// 	error.insert("errors":Result);
+searchMap1 = Map();
+searchMap1.put("searchField","EmployeeID");
+searchMap1.put("searchOperator","Is");
+searchMap1.put("searchTextByID",ID);
+//Create map to hold search condition 2 
+searchMap2 = Map();
+searchMap2.put("searchField","Apply_for_addtional_Leave_Extenstion");
+searchMap2.put("searchOperator","Is");
+searchMap2.put("searchText","half pay");
+searchMap2.put("searchCriteria","AND");
+//Create list to hold all the search conditions 
+searchList = List();
+searchList.add(searchMap1);
+searchList.add(searchMap2);
+response = zoho.people.getRecords("salary",0,200,searchList);
+rest = response.getJSON("code");
+//
+//intake = formDetails.get("Daystaken");
+//From1 = recordDetails.get("From");
+//to1 = recordDetails.get("To");
+var2 = from1.subDay(1);
+num_work_days_tot = var2.workDaysBetween(to_leave,{"Saturday","Sunday"});
+//var1 = From1.subDay(1);
+//num_work_days_tot = var1.workDaysBetween(to1,{"Saturday","Sunday"});
+// 	Result.insert("Leavetype":"rest" + Daystaken);
+// 	error.insert("errors":Result);
+if(rest == null || rest != '7024')
+{
+//Result.insert("Leavetype":"shweta" + Daystaken);
+//error.insert("errors":Result);
+if(Daystaken > 65)
+{
+Result.insert("Leavetype":"Leaves cant be more than 78 days");
+error.insert("errors":Result);
+}
+}
+else if(rest != null || rest == '7024')
+{
+Result.insert("Reasonforleave":"Right now you can apply for " + Daystaken + " Leaves , you can apply for  32.5 days , rest  Employee can take up to 78 days if they go on half pay , Please select the half pay option in salary form" + rest);
+error.insert("errors":Result);
+}
+}
+}
+else if(var > Date10years)
+{
+if(Daystaken > 65)
+{
+Result.insert("Leavetype":"You cant take more than 65 days of leave");
+error.insert("errors":Result);
+}
+}
+}
+else if(Leavetype == "Unpaid Carer Leave")
+{
+// Result.insert("Leavetype":"shweta");
+// error.insert("errors":Result);
+sum = 0;
+// Leavetype_ID = formDetails.get("Leavetype.ID");
+// Employee_ID = formDetails.get("Employee_ID");
+ystart = "01-Jan-" + zoho.currentdate.getyear();
+ystart = ystart.tostring("dd/MM/yyyy");
+yend = "31-Dec-" + zoho.currentdate.getyear();
+yend = yend.tostring("dd/MM/yyyy");
+criterias = List();
+searchMap1 = Map();
+searchMap1.put("searchField","From");
+searchMap1.put("searchOperator","Between");
+searchMap1.put("searchText",ystart + ";" + yend);
+criterias.insert(searchMap1);
+searchMap = Map();
+searchMap.put("searchField","Employee_ID");
+searchMap.put("searchOperator","Is");
+searchMap.put("searchTextByID",ID);
+criterias.insert(searchMap);
+//{searchField:'Leavetype',searchTextByID:'" + lid + "',searchOperator:'Is'}"
+searchMap2 = Map();
+searchMap2.put("searchField","Leavetype");
+searchMap2.put("searchOperator","Is");
+searchMap2.put("searchText","Personal Leave (Sick & Carer leave)");
+criterias.insert(searchMap2);
+response = zoho.people.getRecords("P_ApplyLeave",0,10,criterias);
+rest = response.getJSON("code");
+//
+if(rest != '7024')
+{
+//total_errors.insert("awsd":"in if" + response);
+for each  res in response
+{
+Type = res.get("Type");
+ApprovalStatus = res.get("ApprovalStatus");
+if(ApprovalStatus != "Cancelled" && ApprovalStatus != "Rejected")
+{
+fromdate = res.get("From");
+todtae = res.get("To");
+war = fromdate.subDay(1);
+indays = war.workDaysBetween(todtae,{"Saturday","Sunday"});
+sum = sum + indays;
+}
+}
+}
+else if(rest == null || rest == "7024")
+{
+//total_errors.insert("awsd":"else part" + response);
+}
+if(sum < 10)
+{
+left = 10 - sum;
+Result.insert("Reasonforleave":"Only can apply this leave when personal leave is 0 balance. Right Now your personal leave balance  is : " + left + " and perosnal leave taken is :" + sum);
+//Result.insert("Medical_Certificate_Required":empid + " == " + Employee_ID);
+error.insert("errors":Result);
+}
+// additionalDetails = recordDetails.get("additionalDetails");
+// empid = additionalDetails.get("empid");
+// urlData = "https://people.zoho.eu/people/api/leave/getLeaveTypeDetails";
+// authtoken = "0cccc0a6a767647a82e45a4ec3503edb";
+// // refers to your authtoken
+// //userId = "16933000000164015";                            
+// testparams = Map();
+// testparams.put("authtoken",authtoken);
+// testparams.put("userId",empid);
+// //resp = invokeUrl(urlData, "GET", testparams);
+// response = invokeurl
+// [
+// 	url :urlData
+// 	type :GET
+// 	parameters:testparams
+// ];
+// //info response;
+// apiResponse = response.get("response");
+// apiResult = apiResponse.get("result");
+// for each  results in apiResult
+// {
+// 	BalanceCount = results.get("BalanceCount");
+// 	AvailedCount = results.get("AvailedCount");
+// 	Name = results.get("Name");
+// 	Code = results.get("Code");
+// 	error.insert("errors":"shweta" + BalanceCount);
+// 	if(Code == "PL")
+// 	{
+// 		//info BalanceCount;
+// 		//info Name;
+// 		//info Code;
+// 		if(AvailedCount > 10 || AvailedCount == 0)
+// 		{
+// 			Result.insert("Reasonforleave":"Added Successfully");
+// 			error.insert("success":Result);
+// 		}
+// 		else if(BalanceCount != 0)
+// 		{
+// 			Result.insert("Reasonforleave":"Only can apply this leave when personal leave is 0 balance. Right Now your Balance is : " + BalanceCount);
+// 			//Result.insert("Medical_Certificate_Required":empid + " == " + Employee_ID);
+// 			error.insert("errors":Result);
+// 		}
+// 	}
+// }
+return error;
+}
+else if(Leavetype == "Personal Leave (Sick & Carer leave)")
+{
+if(Personal_Leave_Type == "Sick leave")
+{
+if(Daystaken > 3)
+{
+if(Medical_Certificate_Required != "")
+{
+Result.insert("Medical_Certificate_Required":"Added Successfully");
+error.insert("success":Result);
+}
+else
+{
+Result.insert("Medical_Certificate_Required":"If sick leave is more than 3 consecutive days, MC is mandatory.Right Now you are Applying for " + Daystaken + " consecutive Leaves");
+Result.insert("Personal_Leave_Type":"Medical Certificate is mandatory");
+error.insert("errors":Result);
+}
+}
+}
+if(Personal_Leave_Type == "Carer Leave")
+{
+if(Daystaken > 9)
+{
+if(Medical_Certificate_Required != "")
+{
+Result.insert("Medical_Certificate_Required":"Added Successfully");
+error.insert("success":Result);
+}
+else
+{
+Result.insert("Medical_Certificate_Required":"If carer's leave applied is 10 consecutive days, MC is mandatory.Right Now you are Applying for " + Daystaken + " consecutive Leaves");
+Result.insert("Personal_Leave_Type":"Medical Certificate is mandatory");
+error.insert("errors":Result);
+}
+}
+}
+}
+// End Personal Leave (Sick & Carer leave) validation End here
+else if(Leavetype == "Maternity leave")
+{
+// Result.insert("Leavetype":"shweta");
+// error.insert("errors":Result);
+//	var = LeaveFromDate.subDay(1);
+//	num_work_days = var.workDaysBetween(LeaveToDate,{"Saturday","Sunday"});
+if(Daystaken > 98)
+{
+searchMap1 = Map();
+searchMap1.put("searchField","EmployeeID");
+searchMap1.put("searchOperator","Is");
+searchMap1.put("searchText",ID);
+//Create map to hold search condition 2 
+searchMap2 = Map();
+searchMap2.put("searchField","Apply_for_addtional_Leave_Extenstion");
+searchMap2.put("searchOperator","Is");
+searchMap2.put("searchText","half pay");
+searchMap2.put("searchCriteria","AND");
+//Create list to hold all the search conditions 
+searchList = List();
+searchList.add(searchMap1);
+searchList.add(searchMap2);
+response = zoho.people.getRecords("salary",0,200,searchList);
+rest = response.getJSON("code");
+//
+if(rest != '7024')
+{
+if(Daystaken > 196)
+{
+Result.insert("Total leaves allowed with half pay is 28 weeks ");
+error.insert("errors":Result);
+}
+}
+else if(rest == '7024')
+{
+Result.insert("Reasonforleave":"Righ now you can apply for " + Daystaken + " Leaves , you can apply for  14 weeks , rest  Employee can take up to 28 weeks if they go on half pay , Please select the half pay option in salary form" + rest);
+error.insert("errors":Result);
+}
+}
+// Employee_ID = formDetails.get("Employee_ID");
+// additionalDetails = recordDetails.get("additionalDetails");
+// empid = additionalDetails.get("empid");
+// urlData = "https://people.zoho.eu/people/api/leave/getLeaveTypeDetails";
+// authtoken = "0cccc0a6a767647a82e45a4ec3503edb";
+// refers to your authtoken
+//userId = "16933000000164015";                            
+// testparams = Map();
+// testparams.put("authtoken",authtoken);
+// testparams.put("userId",empid);
+// //resp = invokeUrl(urlData, "GET", testparams);
+// response = invokeurl
+// [
+// 	url :urlData
+// 	type :GET
+// 	parameters:testparams
+// ];
+//info response;
+//apiResponse = response.get("response");
+// apiResult = apiResponse.get("result");
+// for each  results in apiResult
+// {
+// 	BalanceCount = results.get("BalanceCount");
+// 	AvailedCount = results.get("AvailedCount");
+// 	Name = results.get("Name");
+// 	Code = results.get("Code");
+// 	error.insert("errors":Code);
+// 	if(Code == "PML")
+// 	{
+// 		if(BalanceCount != 0 && Daystaken > 98)
+// 		{
+// 			searchMap1 = Map();
+// 			searchMap1.put("searchField","EmployeeID");
+// 			searchMap1.put("searchOperator","Is");
+// 			//searchMap1.put("searchText","DEMO 999 DEMO");
+// 			searchMap1.put("searchText",Employee_ID);
+// 			//Create map to hold search condition 2 
+// 			searchMap2 = Map();
+// 			searchMap2.put("searchField","Apply_for_addtional_Leave_Extenstion");
+// 			searchMap2.put("searchOperator","Is");
+// 			searchMap2.put("searchText","half pay");
+// 			searchMap2.put("searchCriteria","AND");
+// 			//Create list to hold all the search conditions 
+// 			searchList = List();
+// 			searchList.add(searchMap1);
+// 			searchList.add(searchMap2);
+// 			//Execute the get records task to fetch the search result 
+// 			response = zoho.people.getRecords("salary",0,200,searchList);
+// 			apiCode = response.getJSON("code");
+// 			error.insert("errors":apiCode);
+// 			if(apiCode == 7024)
+// 			{
+// 				// not applied 
+// 				Result.insert("Reasonforleave":"Righ now you are apply for " + Daystaken + " Leaves , you can apply for  14 weeks , rest  Employee can take up to 28 weeks if they go on half pay , Please select the half pay option in salary form");
+// 				error.insert("errors":Result);
+// 			}
+// 			// 			else
+// 			// 			{
+// 			// 				//Result.insert("Reasonforleave":apiCode);
+// 			// 				//error.insert("errors":Result);
+// 			// 				error.insert("":"");
+// 			// 			}
+// 		}
+// 		// 		else
+// 		// 		{
+// 		// 			//Result.insert("Reasonforleave":Daystaken);
+// 		// 			//error.insert("errors":Result);
+// 		// 			//error.insert("errors":BalanceCount);
+// 		// 			error.insert("":"");
+// 		// 		}
+// 	}
+// 	// 	else
+// 	// 	{
+// 	// 		error.insert("":"");
+// 	// 	}
+// }
+}
+//  Maternity leave end here 
+else if(Leavetype == "Bereavement Leave")
+{
+// B_Location  Employee_Relationship
+B_Location = formDetails.get("B_Location");
+//Daystaken = formDetails.get("Daystaken");
+if(Daystaken > 2)
+{
+if(B_Location == "Outside of Australia")
+{
+// get 2 extra leave , not more then 4 leave 
+error.insert("":"");
+}
+else
+{
+// not take more then 2 leave 
+Result.insert("B_Location":"Only 2 days of bereavement leave is applicable for occurence within Australia.");
+error.insert("errors":Result);
+}
+}
+else
+{
+error.insert("":"");
+}
+}
+else
+{
+error.insert("":"");
+}
+//Bereavement Leave end here 
+//sickness Leave start here 
+if(Leavetype == "Caretaker Sickness Leave")
+{
+Total_AvailedCount = 0;
+Final_AvailedCount = 0;
+CCL_AvailedCount = 0;
+FSL_AvailedCount = 0;
+CSL_AvailedCount = 0;
+Employee_ID = formDetails.get("Employee_ID");
+additionalDetails = recordDetails.get("additionalDetails");
+empid = additionalDetails.get("empid");
+urlData = "https://people.zoho.eu/people/api/leave/getLeaveTypeDetails";
+authtoken = "0cccc0a6a767647a82e45a4ec3503edb";
+// refers to your authtoken
+//userId = "16933000000164015";                            
+testparams = Map();
+testparams.put("authtoken",authtoken);
+testparams.put("userId",empid);
+//resp = invokeUrl(urlData, "GET", testparams);
+response = invokeurl
+[
+url :urlData
+type :GET
+parameters:testparams
+];
+//info response;
+apiResponse = response.get("response");
+apiResult = apiResponse.get("result");
+for each  results in apiResult
+{
+//BalanceCount = results.get("BalanceCount");
+Code = results.get("Code");
+//CCL   Caretaker Sickness Leave
+if(Code == "CCL")
+{
+CCL_AvailedCount = results.get("AvailedCount");
+Total_AvailedCount = Total_AvailedCount + CCL_AvailedCount;
+}
+//FSL   Family Sickness Leave
+if(Code == "FSL")
+{
+FSL_AvailedCount = results.get("AvailedCount");
+Total_AvailedCount = Total_AvailedCount + FSL_AvailedCount;
+}
+//Child Sickness Leave
+if(Code == "CSL")
+{
+CSL_AvailedCount = results.get("AvailedCount");
+Total_AvailedCount = Total_AvailedCount + CSL_AvailedCount;
+//Final_AvailedCount = Daystaken + Total_AvailedCount;
+}
+}
+if(Total_AvailedCount <= 5)
+{
+Final_AvailedCount = Total_AvailedCount.toLong() + Daystaken.toLong();
+if(Final_AvailedCount > 5)
+{
+Result.insert("Reasonforleave":"Your Sick Leave Equation is Like this Caretaker Leave : " + CCL_AvailedCount + " Family Sickness Leave : " + FSL_AvailedCount + " Child Sickness Leave : " + CSL_AvailedCount + " , You can capped  5 days per year , Right now your Total is " + Final_AvailedCount + " ");
+error.insert("errors":Result);
+}
+else
+{
+error.insert("":"");
+}
+}
+else
+{
+error.insert("":"");
+//Result.insert("Reasonforleave":Final_AvailedCount);
+//error.insert("errors":Result);
+}
+}
+else
+{
+error.insert("":"");
+}
+if(Leavetype == "Child Sickness Leave")
+{
+Total_AvailedCount = 0;
+Final_AvailedCount = 0;
+CCL_AvailedCount = 0;
+FSL_AvailedCount = 0;
+CSL_AvailedCount = 0;
+Employee_ID = formDetails.get("Employee_ID");
+additionalDetails = recordDetails.get("additionalDetails");
+empid = additionalDetails.get("empid");
+urlData = "https://people.zoho.eu/people/api/leave/getLeaveTypeDetails";
+authtoken = "0cccc0a6a767647a82e45a4ec3503edb";
+// refers to your authtoken
+//userId = "16933000000164015";                            
+testparams = Map();
+testparams.put("authtoken",authtoken);
+testparams.put("userId",empid);
+//resp = invokeUrl(urlData, "GET", testparams);
+response = invokeurl
+[
+url :urlData
+type :GET
+parameters:testparams
+];
+//info response;
+apiResponse = response.get("response");
+apiResult = apiResponse.get("result");
+for each  results in apiResult
+{
+//BalanceCount = results.get("BalanceCount");
+Code = results.get("Code");
+//CCL   Caretaker Sickness Leave
+if(Code == "CCL")
+{
+CCL_AvailedCount = results.get("AvailedCount");
+Total_AvailedCount = Total_AvailedCount + CCL_AvailedCount;
+}
+//FSL   Family Sickness Leave
+if(Code == "FSL")
+{
+FSL_AvailedCount = results.get("AvailedCount");
+Total_AvailedCount = Total_AvailedCount + FSL_AvailedCount;
+}
+//Child Sickness Leave
+if(Code == "CSL")
+{
+CSL_AvailedCount = results.get("AvailedCount");
+Total_AvailedCount = Total_AvailedCount + CSL_AvailedCount;
+//Final_AvailedCount = Daystaken + Total_AvailedCount;
+}
+}
+if(Total_AvailedCount <= 5)
+{
+Final_AvailedCount = Total_AvailedCount.toLong() + Daystaken.toLong();
+if(Final_AvailedCount > 5)
+{
+Result.insert("Reasonforleave":"Your Sick Leave Equation is Like this Caretaker Leave : " + CCL_AvailedCount + " Family Sickness Leave : " + FSL_AvailedCount + " Child Sickness Leave : " + CSL_AvailedCount + " , You can capped  5 days per year , Right now your Total is " + Final_AvailedCount + " ");
+error.insert("errors":Result);
+}
+else
+{
+error.insert("":"");
+}
+}
+else
+{
+error.insert("":"");
+//Result.insert("Reasonforleave":Final_AvailedCount);
+//error.insert("errors":Result);
+}
+}
+else
+{
+error.insert("":"");
+}
+if(Leavetype == "Family Sickness Leave")
+{
+Total_AvailedCount = 0;
+Final_AvailedCount = 0;
+CCL_AvailedCount = 0;
+FSL_AvailedCount = 0;
+CSL_AvailedCount = 0;
+Employee_ID = formDetails.get("Employee_ID");
+additionalDetails = recordDetails.get("additionalDetails");
+empid = additionalDetails.get("empid");
+urlData = "https://people.zoho.eu/people/api/leave/getLeaveTypeDetails";
+authtoken = "0cccc0a6a767647a82e45a4ec3503edb";
+// refers to your authtoken
+//userId = "16933000000164015";                            
+testparams = Map();
+testparams.put("authtoken",authtoken);
+testparams.put("userId",empid);
+//resp = invokeUrl(urlData, "GET", testparams);
+response = invokeurl
+[
+url :urlData
+type :GET
+parameters:testparams
+];
+//info response;
+apiResponse = response.get("response");
+apiResult = apiResponse.get("result");
+for each  results in apiResult
+{
+//BalanceCount = results.get("BalanceCount");
+Code = results.get("Code");
+//CCL   Caretaker Sickness Leave
+if(Code == "CCL")
+{
+CCL_AvailedCount = results.get("AvailedCount");
+Total_AvailedCount = Total_AvailedCount + CCL_AvailedCount;
+}
+//FSL   Family Sickness Leave
+if(Code == "FSL")
+{
+FSL_AvailedCount = results.get("AvailedCount");
+Total_AvailedCount = Total_AvailedCount + FSL_AvailedCount;
+}
+//Child Sickness Leave
+if(Code == "CSL")
+{
+CSL_AvailedCount = results.get("AvailedCount");
+Total_AvailedCount = Total_AvailedCount + CSL_AvailedCount;
+//Final_AvailedCount = Daystaken + Total_AvailedCount;
+}
+}
+if(Total_AvailedCount <= 5)
+{
+Final_AvailedCount = Total_AvailedCount.toLong() + Daystaken.toLong();
+if(Final_AvailedCount > 5)
+{
+Result.insert("Reasonforleave":"Your Sick Leave Equation is Like this Caretaker Leave : " + CCL_AvailedCount + " Family Sickness Leave : " + FSL_AvailedCount + " Child Sickness Leave : " + CSL_AvailedCount + " , You can capped  5 days per year , Right now your Total is " + Final_AvailedCount + " ");
+error.insert("errors":Result);
+}
+else
+{
+error.insert("":"");
+}
+}
+else
+{
+error.insert("":"");
+//Result.insert("Reasonforleave":Final_AvailedCount);
+//error.insert("errors":Result);
+}
+}
+else
+{
+error.insert("":"");
+}
+//sickness Leave end here 
+return error;
+*/
+//------ 30-Dec-2021 Function copied from "hractsupport3@hractasia.com"
+Result = Collection();
+error = Collection();
+formDetails = Map();
+formDetails = recordDetails;
+info formDetails;
+Leavetype = formDetails.get("Leavetype");
+Personal_Leave_Type = formDetails.get("Personal_Leave_Type");
+// Result.insert("Leavetype":"service" + Leavetype + Ltype);
+// error.insert("errors":Result);
+Daystaken = formDetails.get("Daystaken");
+Medical_Certificate_Required = formDetails.get("Medical_Certificate_Required");
+//Employee_ID = formDetails.get("Employee_ID");
+//additionalDetails = recordDetails.get("additionalDetails");
+//empid = additionalDetails.get("empid");
+// // Carer Leave start here 
+//error.insert("errors":"tar");
+//return error;
+Result.insert("print_Leavetype":Leavetype);
+error.insert("errors":Result);
+if(Leavetype == "Long Service Leave")
+{
+Date5years = dateofjoining.addYear(5);
+Date10years = dateofjoining.addYear(10);
+//var = toString(Date5years,"dd-MMM-yy");
+var = toDate(from1,"dd-MMM-yyyy");
+if(var < Date5years)
+{
+	Result.insert("Leavetype":"Long service leave cant applied before 5 years of service");
+	error.insert("errors":Result);
+}
+if(var > Date5years && var < Date10years)
+{
+	if(Daystaken > 32.5)
+	{
+		// 	Result.insert("Leavetype":"daytaken" + Daystaken);
+		// 	error.insert("errors":Result);
+		searchMap1 = Map();
+		searchMap1.put("searchField","EmployeeID");
+		searchMap1.put("searchOperator","Is");
+		searchMap1.put("searchTextByID",ID);
+		//Create map to hold search condition 2 
+		searchMap2 = Map();
+		searchMap2.put("searchField","Apply_for_addtional_Leave_Extenstion");
+		searchMap2.put("searchOperator","Is");
+		searchMap2.put("searchText","half pay");
+		searchMap2.put("searchCriteria","AND");
+		//Create list to hold all the search conditions 
+		searchList = List();
+		searchList.add(searchMap1);
+		searchList.add(searchMap2);
+		response = zoho.people.getRecords("salary",0,200,searchList);
+		rest = response.getJSON("code");
+		//
+		//intake = formDetails.get("Daystaken");
+		//From1 = recordDetails.get("From");
+		//to1 = recordDetails.get("To");
+		var2 = from1.subDay(1);
+		num_work_days_tot = var2.workDaysBetween(to_leave,{"Saturday","Sunday"});
+		//var1 = From1.subDay(1);
+		//num_work_days_tot = var1.workDaysBetween(to1,{"Saturday","Sunday"});
+		// 	Result.insert("Leavetype":"rest" + Daystaken);
+		// 	error.insert("errors":Result);
+		if(rest == null || rest != '7024')
+		{
+			//Result.insert("Leavetype":"shweta" + Daystaken);
+			//error.insert("errors":Result);
+			if(Daystaken > 65)
+			{
+				Result.insert("Leavetype":"Leaves cant be more than 78 days");
+				error.insert("errors":Result);
+			}
+		}
+		else if(rest != null || rest == '7024')
+		{
+			Result.insert("Reasonforleave":"Right now you can apply for " + Daystaken + " Leaves , you can apply for  32.5 days , rest  Employee can take up to 78 days if they go on half pay , Please select the half pay option in salary form" + rest);
+			error.insert("errors":Result);
+		}
+	}
+}
+else if(var > Date10years)
+{
+	if(Daystaken > 65)
+	{
+		Result.insert("Leavetype":"You cant take more than 65 days of leave");
+		error.insert("errors":Result);
+	}
+}
+}
+else if(Leavetype == "Unpaid Carer Leave")
+{
+sum = 0;
+// Leavetype_ID = formDetails.get("Leavetype.ID");
+// Employee_ID = formDetails.get("Employee_ID");
+// EmployeeId = 33924000000139001
+ystarta = "01-Jan-" + zoho.currentdate.getyear();
+ystart = ystarta.tostring("dd/MM/yyyy");
+yenda = "31-Dec-" + zoho.currentdate.getyear();
+yend = yenda.tostring("dd/MM/yyyy");
+ystart = "01/01/2022";
+yend = "31/12/2022";
+Employee_ID = formDetails.get("Employee_ID");
+
+criterias = List();
+searchMap1 = Map();
+searchMap1.put("searchField","From");
+searchMap1.put("searchOperator","Between");
+searchMap1.put("searchText",ystart + ";" + yend);
+criterias.insert(searchMap1);
+
+
+searchMap = Map();
+searchMap.put("searchField","Employee_ID");
+searchMap.put("searchOperator","Is");
+//searchMap.put("searchTextByID",ID);
+searchMap.put("searchTextByID",Employee_ID);
+criterias.insert(searchMap);
+//{searchField:'Leavetype',searchTextByID:'" + lid + "',searchOperator:'Is'}"
+
+searchMap2 = Map();
+searchMap2.put("searchField","Leavetype");
+searchMap2.put("searchOperator","Is");
+searchMap2.put("searchText","Personal Leave (Sick & Carer leave)");
+criterias.insert(searchMap2);
+
+
+response = zoho.people.getRecords("P_ApplyLeave",0,10,criterias);
+Result.insert("print_response":response);
+error.insert("errors":Result);
+rest = response.getJSON("code");
+//
+if(rest != '7024')
+{
+//total_errors.insert("awsd":"in if" + response);
+for each  res in response
+{
+Type = res.get("Type");
+ApprovalStatus = res.get("ApprovalStatus");
+if(ApprovalStatus != "Cancelled" && ApprovalStatus != "Rejected")
+{
+fromdate = res.get("From");
+todtae = res.get("To");
+war = fromdate.subDay(1);
+indays = war.workDaysBetween(todtae,{"Saturday","Sunday"});
+sum = sum + indays;
+}
+}
+}
+else if(rest == null || rest == "7024")
+{
+//total_errors.insert("awsd":"else part" + response);
+}
+if(sum < 10)
+{
+left = 10 - sum;
+Result.insert("Reasonforleave":"Only can apply this leave when personal leave is 0 balance. Right Now your personal leave balance  is : " + left + " and perosnal leave taken is :" + sum);
+//Result.insert("Medical_Certificate_Required":empid + " == " + Employee_ID);
+error.insert("errors":Result);
+}
+// additionalDetails = recordDetails.get("additionalDetails");
+// empid = additionalDetails.get("empid");
+// urlData = "https://people.zoho.eu/people/api/leave/getLeaveTypeDetails";
+// authtoken = "0cccc0a6a767647a82e45a4ec3503edb";
+// // refers to your authtoken
+// //userId = "16933000000164015";                            
+// testparams = Map();
+// testparams.put("authtoken",authtoken);
+// testparams.put("userId",empid);
+// //resp = invokeUrl(urlData, "GET", testparams);
+// response = invokeurl
+// [
+// 	url :urlData
+// 	type :GET
+// 	parameters:testparams
+// ];
+// //info response;
+// apiResponse = response.get("response");
+// apiResult = apiResponse.get("result");
+// for each  results in apiResult
+// {
+// 	BalanceCount = results.get("BalanceCount");
+// 	AvailedCount = results.get("AvailedCount");
+// 	Name = results.get("Name");
+// 	Code = results.get("Code");
+// 	error.insert("errors":"shweta" + BalanceCount);
+// 	if(Code == "PL")
+// 	{
+// 		//info BalanceCount;
+// 		//info Name;
+// 		//info Code;
+// 		if(AvailedCount > 10 || AvailedCount == 0)
+// 		{
+// 			Result.insert("Reasonforleave":"Added Successfully");
+// 			error.insert("success":Result);
+// 		}
+// 		else if(BalanceCount != 0)
+// 		{
+// 			Result.insert("Reasonforleave":"Only can apply this leave when personal leave is 0 balance. Right Now your Balance is : " + BalanceCount);
+// 			//Result.insert("Medical_Certificate_Required":empid + " == " + Employee_ID);
+// 			error.insert("errors":Result);
+// 		}
+// 	}
+// }
+return error;
+
+}
+else if(Leavetype == "Personal Leave (Sick & Carer leave)")
+{
+// Result.insert("Leavetype":"service" + Leavetype + Ltype);
+// error.insert("errors":Result);
+sum2 = 0;
+tot = 0;
+//Result.insert("Leavetype":"service" + Personal_Leave_Type + Ltype);
+//error.insert("errors":Result);
+ystart2 = "01-Jan-" + zoho.currentdate.getyear();
+ystart2 = ystart2.tostring("dd/MM/yyyy");
+yend2 = "31-Dec-" + zoho.currentdate.getyear();
+yend2 = yend2.tostring("dd/MM/yyyy");
+criterias2 = List();
+searchMap12 = Map();
+searchMap12.put("searchField","From");
+searchMap12.put("searchOperator","Between");
+searchMap12.put("searchText",ystart2 + ";" + yend2);
+criterias2.insert(searchMap12);
+searchMap2 = Map();
+searchMap2.put("searchField","Employee_ID");
+searchMap2.put("searchOperator","Is");
+searchMap2.put("searchTextByID",ID);
+criterias2.insert(searchMap2);
+searchMap22 = Map();
+searchMap22.put("searchField","Leavetype");
+searchMap22.put("searchOperator","Is");
+searchMap22.put("searchText","Personal Leave (Sick & Carer leave)");
+criterias2.insert(searchMap22);
+response2 = zoho.people.getRecords("P_ApplyLeave",0,10,criterias2);
+rest2 = response2.getJSON("code");
+// 	Result.insert("Leavetype":"service" + rest);
+// 	error.insert("errors":Result);
+if(rest2 != '7024' || rest2 == null)
+{
+	//Result.insert("Leavetype":"ifonside" + rest);
+	//error.insert("errors":Result);
+	//total_errors.insert("awsd":"in if" + response);
+	for each  res2 in response2
+	{
+		Type2 = res2.get("Type");
+		ApprovalStatus2 = res2.get("ApprovalStatus");
+		if(ApprovalStatus2 != "Cancelled" && ApprovalStatus2 != "Rejected")
+		{
+			fromdate2 = res2.get("From");
+			todtae2 = res2.get("To");
+			war2 = fromdate2.subDay(2);
+			indays2 = war2.workDaysBetween(todtae2,{"Saturday","Sunday"});
+			sum2 = sum2 + indays2;
+		}
+	}
+}
+else if(rest2 == null || rest2 == "7024")
+{
+	//Result.insert("Leavetype":"else if" + rest);
+	//error.insert("errors":Result);
+}
+if(sum2 >= 10)
+{
+	//left = 10 - sum;
+	Result.insert("Reasonforleave":"You have applied all paid personal sick." + sum2);
+	error.insert("errors":Result);
+}
+lft = 0;
+par = Daystaken.toNumber();
+tot = par + sum2;
+lft = 10 - sum2;
+//Result.insert("Reasonforleave":"You " + "par" + par + "tot" + tot + "daystaken" + Daystaken + "sum2" + sum2);
+//error.insert("errors":Result);
+if(tot > 10)
+{
+	Result.insert("Reasonforleave":"You can apply in total for 10 sickness leave. Please apply for Unpaid Carer leave. You are left with paid leaves: " + lft);
+	error.insert("errors":Result);
+}
+if(Personal_Leave_Type == "Carer Leave")
+{
+	sum = 0;
+	//Result.insert("Leavetype":"service" + Personal_Leave_Type + Ltype);
+	//error.insert("errors":Result);
+	ystart = "01-Jan-" + zoho.currentdate.getyear();
+	ystart = ystart.tostring("dd/MM/yyyy");
+	yend = "31-Dec-" + zoho.currentdate.getyear();
+	yend = yend.tostring("dd/MM/yyyy");
+	criterias = List();
+	searchMap1 = Map();
+	searchMap1.put("searchField","From");
+	searchMap1.put("searchOperator","Between");
+	searchMap1.put("searchText",ystart + ";" + yend);
+	criterias.insert(searchMap1);
+	searchMap = Map();
+	searchMap.put("searchField","Employee_ID");
+	searchMap.put("searchOperator","Is");
+	searchMap.put("searchTextByID",ID);
+	criterias.insert(searchMap);
+	searchMap2 = Map();
+	searchMap2.put("searchField","Leavetype");
+	searchMap2.put("searchOperator","Is");
+	searchMap2.put("searchText","Personal Leave (Sick & Carer leave)");
+	criterias.insert(searchMap2);
+	searchMap3 = Map();
+	searchMap3.put("searchField","Personal_Leave_Type");
+	searchMap3.put("searchOperator","Is");
+	searchMap3.put("searchText","Carer Leave");
+	criterias.insert(searchMap3);
+	response = zoho.people.getRecords("P_ApplyLeave",0,10,criterias);
+	rest = response.getJSON("code");
+	// 	Result.insert("Leavetype":"service" + rest);
+	// 	error.insert("errors":Result);
+	if(rest != '7024' || rest == null)
+	{
+		//Result.insert("Leavetype":"ifonside" + rest);
+		//error.insert("errors":Result);
+		//total_errors.insert("awsd":"in if" + response);
+		for each  res in response
+		{
+			Type = res.get("Type");
+			ApprovalStatus = res.get("ApprovalStatus");
+			if(ApprovalStatus != "Cancelled" && ApprovalStatus != "Rejected")
+			{
+				fromdate = res.get("From");
+				todtae = res.get("To");
+				war = fromdate.subDay(2);
+				indays = war.workDaysBetween(todtae,{"Saturday","Sunday"});
+				sum = sum + indays;
+			}
+		}
+	}
+	else if(rest == null || rest == "7024")
+	{
+		//Result.insert("Leavetype":"else if" + rest);
+		//error.insert("errors":Result);
+	}
+	if(sum >= 10)
+	{
+		//left = 10 - sum;
+		Result.insert("Reasonforleave":"You have applied all paid peronsal sick Carer leave . You can apply unpaid Carer Leave" + sum);
+		error.insert("errors":Result);
+	}
+	else if(Daystaken > 9)
+	{
+		if(Medical_Certificate_Required != "")
+		{
+			Result.insert("Medical_Certificate_Required":"Added Successfully");
+			error.insert("success":Result);
+		}
+		else
+		{
+			Result.insert("Medical_Certificate_Required":"If carer's leave applied is 10 consecutive days, MC is mandatory.Right Now you are Applying for " + Daystaken + " consecutive Leaves");
+			Result.insert("Personal_Leave_Type":"Medical Certificate is mandatory");
+			error.insert("errors":Result);
+		}
+	}
+}
+else if(Personal_Leave_Type == "Sick leave")
+{
+	if(Daystaken > 3)
+	{
+		if(Medical_Certificate_Required != "")
+		{
+			Result.insert("Medical_Certificate_Required":"Added Successfully");
+			error.insert("success":Result);
+		}
+		else
+		{
+			Result.insert("Medical_Certificate_Required":"If sick leave is more than 3 consecutive days, MC is mandatory.Right Now you are Applying for " + Daystaken + " consecutive Leaves");
+			Result.insert("Personal_Leave_Type":"Medical Certificate is mandatory");
+			error.insert("errors":Result);
+		}
+	}
+}
+}
+else if(Leavetype == "Carer Leave")
+{
+sum = 0;
+ystart = "01-Jan-" + zoho.currentdate.getyear();
+ystart = ystart.tostring("dd/MM/yyyy");
+yend = "31-Dec-" + zoho.currentdate.getyear();
+yend = yend.tostring("dd/MM/yyyy");
+criterias = List();
+searchMap1 = Map();
+searchMap1.put("searchField","From");
+searchMap1.put("searchOperator","Between");
+searchMap1.put("searchText",ystart + ";" + yend);
+criterias.insert(searchMap1);
+searchMap = Map();
+searchMap.put("searchField","Employee_ID");
+searchMap.put("searchOperator","Is");
+searchMap.put("searchTextByID",ID);
+criterias.insert(searchMap);
+//{searchField:'Leavetype',searchTextByID:'" + lid + "',searchOperator:'Is'}"
+searchMap2 = Map();
+searchMap2.put("searchField","Leavetype");
+searchMap2.put("searchOperator","Is");
+searchMap2.put("searchText","Personal Leave (Sick & Carer leave)");
+criterias.insert(searchMap2);
+searchMap3 = Map();
+//criterias.insert(searchMap3);
+response = zoho.people.getRecords("P_ApplyLeave",0,10,criterias);
+info "responsedd:" + response;
+rest = response.getJSON("code");
+// Result.insert("Leavetype":"service" + Daystaken);
+// error.insert("errors":Result);
+//
+if(rest != '7024' || rest == null)
+{
+	//total_errors.insert("awsd":"in if" + response);
+	for each  res in response
+	{
+		Type = res.get("Type");
+		ApprovalStatus = res.get("ApprovalStatus");
+		if(ApprovalStatus != "Cancelled" && ApprovalStatus != "Rejected")
+		{
+			fromdate = res.get("From");
+			todtae = res.get("To");
+			war = fromdate.subDay(2);
+			indays = war.workDaysBetween(todtae,{"Saturday","Sunday"});
+			sum = sum + indays;
+		}
+	}
+}
+else if(rest == null || rest == "7024")
+{
+	//total_errors.insert("awsd":"else part" + response);
+}
+if(sum < 10)
+{
+	left = 10 - sum;
+	Result.insert("Reasonforleave":"Only can apply this leave when personal leave is 0 balance. Right Now your personal leave balance  is : " + left + " and perosnal leave taken is :" + sum);
+	//Result.insert("Medical_Certificate_Required":empid + " == " + Employee_ID);
+	error.insert("errors":Result);
+}
+else if(Daystaken > 2)
+{
+	Result.insert("Reasonforleave":"You can not apply for more than 2 days per applications");
+	error.insert("errors":Result);
+}
+}
+// else if(Leavetype == "Personal Leave (Sick & Carer leave)")
+else if(Leavetype == "Maternity leave")
+{
+// Result.insert("Leavetype":"shweta");
+// error.insert("errors":Result);
+//	var = LeaveFromDate.subDay(1);
+//	num_work_days = var.workDaysBetween(LeaveToDate,{"Saturday","Sunday"});
+if(Daystaken > 98)
+{
+	searchMap1 = Map();
+	searchMap1.put("searchField","EmployeeID");
+	searchMap1.put("searchOperator","Is");
+	Employee_ID = formDetails.get("Employee_ID");
+	//searchMap1.put("searchText",ID);
+	searchMap1.put("searchText",Employee_ID);
+	//Create map to hold search condition 2 
+	searchMap2 = Map();
+	searchMap2.put("searchField","Apply_for_additional_Leave_Extension");
+	//Apply_for_additional_Leave_Extension
+	searchMap2.put("searchOperator","Is");
+	searchMap2.put("searchText","half pay");
+	searchMap2.put("searchCriteria","AND");
+	//Create list to hold all the search conditions 
+	searchList = List();
+	searchList.add(searchMap1);
+	searchList.add(searchMap2);
+	response = zoho.people.getRecords("salary",0,200,searchList);
+	rest = response.getJSON("code");
+	if(rest != '7024')
+	{
+		if(Daystaken > 196)
+		{
+			Result.insert("Reasonforleave":"Total leaves allowed with half pay is 28 weeks " + rest);
+			error.insert("errors":Result);
+		}
+	}
+	else if(rest == '7024')
+	{
+		Result.insert("Reasonforleave":"Righ now you can apply for " + Daystaken + " Leaves , you can apply for  14 weeks , rest  Employee can take up to 28 weeks if they go on half pay , Please select the half pay option in salary form" + rest);
+		error.insert("errors":Result);
+	}
+}
+// Employee_ID = formDetails.get("Employee_ID");
+// additionalDetails = recordDetails.get("additionalDetails");
+// empid = additionalDetails.get("empid");
+// urlData = "https://people.zoho.eu/people/api/leave/getLeaveTypeDetails";
+// authtoken = "0cccc0a6a767647a82e45a4ec3503edb";
+// refers to your authtoken
+//userId = "16933000000164015";                            
+// testparams = Map();
+// testparams.put("authtoken",authtoken);
+// testparams.put("userId",empid);
+// //resp = invokeUrl(urlData, "GET", testparams);
+// response = invokeurl
+// [
+// 	url :urlData
+// 	type :GET
+// 	parameters:testparams
+// ];
+//info response;
+//apiResponse = response.get("response");
+// apiResult = apiResponse.get("result");
+// for each  results in apiResult
+// {
+// 	BalanceCount = results.get("BalanceCount");
+// 	AvailedCount = results.get("AvailedCount");
+// 	Name = results.get("Name");
+// 	Code = results.get("Code");
+// 	error.insert("errors":Code);
+// 	if(Code == "PML")
+// 	{
+// 		if(BalanceCount != 0 && Daystaken > 98)
+// 		{
+// 			searchMap1 = Map();
+// 			searchMap1.put("searchField","EmployeeID");
+// 			searchMap1.put("searchOperator","Is");
+// 			//searchMap1.put("searchText","DEMO 999 DEMO");
+// 			searchMap1.put("searchText",Employee_ID);
+// 			//Create map to hold search condition 2 
+// 			searchMap2 = Map();
+// 			searchMap2.put("searchField","Apply_for_addtional_Leave_Extenstion");
+// 			searchMap2.put("searchOperator","Is");
+// 			searchMap2.put("searchText","half pay");
+// 			searchMap2.put("searchCriteria","AND");
+// 			//Create list to hold all the search conditions 
+// 			searchList = List();
+// 			searchList.add(searchMap1);
+// 			searchList.add(searchMap2);
+// 			//Execute the get records task to fetch the search result 
+// 			response = zoho.people.getRecords("salary",0,200,searchList);
+// 			apiCode = response.getJSON("code");
+// 			error.insert("errors":apiCode);
+// 			if(apiCode == 7024)
+// 			{
+// 				// not applied 
+// 				Result.insert("Reasonforleave":"Righ now you are apply for " + Daystaken + " Leaves , you can apply for  14 weeks , rest  Employee can take up to 28 weeks if they go on half pay , Please select the half pay option in salary form");
+// 				error.insert("errors":Result);
+// 			}
+// 			// 			else
+// 			// 			{
+// 			// 				//Result.insert("Reasonforleave":apiCode);
+// 			// 				//error.insert("errors":Result);
+// 			// 				error.insert("":"");
+// 			// 			}
+// 		}
+// 		// 		else
+// 		// 		{
+// 		// 			//Result.insert("Reasonforleave":Daystaken);
+// 		// 			//error.insert("errors":Result);
+// 		// 			//error.insert("errors":BalanceCount);
+// 		// 			error.insert("":"");
+// 		// 		}
+// 	}
+// 	// 	else
+// 	// 	{
+// 	// 		error.insert("":"");
+// 	// 	}
+// }
+}
+//  Maternity leave end here 
+else if(Leavetype == "Unpaid Parental Leave")
+{
+getrec = zoho.people.getRecordByID("P_Employee",ID);
+empgender = getrec.get("Gender");
+childdob = getrec.get("Child_DOB");
+empadopt = getrec.get("Adoption");
+//daysage = days360(childdob,zoho.currentdate);
+//yearsage = (daysage / 365).round(1);
+emppartner = getrec.get("Spouse_in_same_organisation");
+// the date or expected date of birth if the employee is pregnant start here 
+appliedDateFrom = formDetails.get("From");
+currentdate = toDate(appliedDateFrom,"dd-MMM-yyyy");
+//currentdate = toDate(zoho.currentdate,"dd-MMM-yyyy");
+if(getrec.get("Expected_Delivery_Date").isNull() == false)
+{
+	expected_delivery_date = getrec.get("Expected_Delivery_Date");
+	//Expected_Delivery_Date
+	expectedDeliveryDate = toDate(expected_delivery_date,"dd-MMM-yyyy");
+	//difference = currentdate.workDaysBetween(expectedDeliveryDate);
+	difference = currentdate.daysBetween(expectedDeliveryDate);
+	//newDate = expectedDeliveryDate.subDay(42);
+	newDate = expectedDeliveryDate.subDay(42);
+	newDate_edd = toDate(newDate,"dd-MMM-yyyy");
+	if(currentdate >= newDate_edd && currentdate <= expectedDeliveryDate && difference <= 42)
+	{
+		// condtion True 
+		expectedChildAgeDate = expectedDeliveryDate.addYear(2);
+		child_birth_date = toDate(expectedChildAgeDate,"dd-MMM-yyyy");
+		if(expectedDeliveryDate <= child_birth_date)
+		{
+			// true 
+		}
+		else
+		{
+			Result.insert("Leavetype":"Please confirm your expected delivery date " + expected_delivery_date + " ,  Can be taken on birth of child or up to 42 days  before child birth and before child turns 2 years old ");
+			error.insert("errors":Result);
+		}
+	}
+	else
+	{
+		Result.insert("Leavetype":"Please confirm your expected delivery date " + expected_delivery_date + " ,  Can be taken on birth of child or up to 42 days  before child birth and before child turns 2 years old ");
+		error.insert("errors":Result);
+	}
+}
+// the date or expected date of birth if the employee is pregnant end  here 
+//adopeted child code start here 
+if(empadopt == "true")
+{
+	//  condtion true 
+	child_dob = toDate(childdob,"dd-MMM-yyyy");
+	calculated_child_dob = child_dob.yearsBetween(currentdate);
+	Date_of_the_adoption = getrec.get("Date_of_the_adoption");
+	dateOfTheAdoption = toDate(Date_of_the_adoption,"dd-MMM-yyyy");
+	//empadoptchildage = getrec.get("Adopted_Child_Age");
+	// condtion false 
+	if(calculated_child_dob < 16 && dateOfTheAdoption >= currentdate)
+	{
+		//  condtion true 
+		//Result.insert("Leavetype":"calculated_child_dob : " + calculated_child_dob + "---- dateOfTheAdoption : " + dateOfTheAdoption + " ---currentdate : " + currentdate + " ");
+	}
+	else
+	{
+		// condtion false 
+		Result.insert("Leavetype":"Unpaid Parental leave can be taken if adopted child is below 16 years of age.Your age is " + calculated_child_dob + " ");
+		error.insert("errors":Result);
+	}
+}
+//adopeted child code start here 
+/*
+if(yearsage > 2)
+{
+Result.insert("Leavetype":"Unpaid Parental leave can't be taken after 2 years of child birth. ");
+error.insert("errors":Result);
+}
+*/
+////////////////////////
+}
+else if(Leavetype == "Bereavement Leave")
+{
+// B_Location  Employee_Relationship
+B_Location = formDetails.get("B_Location");
+//Daystaken = formDetails.get("Daystaken");
+if(Daystaken > 2)
+{
+	if(B_Location == "Outside of Australia")
+	{
+		// get 2 extra leave , not more then 4 leave 
+		error.insert("":"");
+	}
+	else
+	{
+		// not take more then 2 leave 
+		Result.insert("B_Location":"Additional 2 days, if deceased is outside of Australia, with in the state you can take 2 days ");
+		error.insert("errors":Result);
+	}
+}
+else
+{
+	error.insert("":"");
+}
+}
+else
+{
+error.insert("":"");
+}
+//Bereavement Leave end here 
+//sickness Leave start here 
+if(Leavetype == "Caretaker Sickness Leave")
+{
+Total_AvailedCount = 0;
+Final_AvailedCount = 0;
+CCL_AvailedCount = 0;
+FSL_AvailedCount = 0;
+CSL_AvailedCount = 0;
+Employee_ID = formDetails.get("Employee_ID");
+additionalDetails = recordDetails.get("additionalDetails");
+empid = additionalDetails.get("empid");
+urlData = "https://people.zoho.eu/people/api/leave/getLeaveTypeDetails";
+authtoken = "0cccc0a6a767647a82e45a4ec3503edb";
+// refers to your authtoken
+//userId = "16933000000164015";                            
+testparams = Map();
+testparams.put("authtoken",authtoken);
+testparams.put("userId",empid);
+//resp = invokeUrl(urlData, "GET", testparams);
+response = invokeurl
+[
+	url :urlData
+	type :GET
+	parameters:testparams
+];
+//info response;
+apiResponse = response.get("response");
+apiResult = apiResponse.get("result");
+for each  results in apiResult
+{
+	//BalanceCount = results.get("BalanceCount");
+	Code = results.get("Code");
+	//CCL   Caretaker Sickness Leave
+	if(Code == "CCL")
+	{
+		CCL_AvailedCount = results.get("AvailedCount");
+		Total_AvailedCount = Total_AvailedCount + CCL_AvailedCount;
+	}
+	//FSL   Family Sickness Leave
+	if(Code == "FSL")
+	{
+		FSL_AvailedCount = results.get("AvailedCount");
+		Total_AvailedCount = Total_AvailedCount + FSL_AvailedCount;
+	}
+	//Child Sickness Leave
+	if(Code == "CSL")
+	{
+		CSL_AvailedCount = results.get("AvailedCount");
+		Total_AvailedCount = Total_AvailedCount + CSL_AvailedCount;
+		//Final_AvailedCount = Daystaken + Total_AvailedCount;
+	}
+}
+if(Total_AvailedCount <= 5)
+{
+	Final_AvailedCount = Total_AvailedCount.toLong() + Daystaken.toLong();
+	if(Final_AvailedCount > 5)
+	{
+		Result.insert("Reasonforleave":"Your Sick Leave Equation is Like this Caretaker Leave : " + CCL_AvailedCount + " Family Sickness Leave : " + FSL_AvailedCount + " Child Sickness Leave : " + CSL_AvailedCount + " , You can capped  5 days per year , Right now your Total is " + Final_AvailedCount + " ");
+		error.insert("errors":Result);
+	}
+	else
+	{
+		error.insert("":"");
+	}
+}
+else
+{
+	error.insert("":"");
+	//Result.insert("Reasonforleave":Final_AvailedCount);
+	//error.insert("errors":Result);
+}
+}
+else
+{
+error.insert("":"");
+}
+if(Leavetype == "Child Sickness Leave")
+{
+Total_AvailedCount = 0;
+Final_AvailedCount = 0;
+CCL_AvailedCount = 0;
+FSL_AvailedCount = 0;
+CSL_AvailedCount = 0;
+Employee_ID = formDetails.get("Employee_ID");
+additionalDetails = recordDetails.get("additionalDetails");
+empid = additionalDetails.get("empid");
+urlData = "https://people.zoho.eu/people/api/leave/getLeaveTypeDetails";
+authtoken = "0cccc0a6a767647a82e45a4ec3503edb";
+// refers to your authtoken
+//userId = "16933000000164015";                            
+testparams = Map();
+testparams.put("authtoken",authtoken);
+testparams.put("userId",empid);
+//resp = invokeUrl(urlData, "GET", testparams);
+response = invokeurl
+[
+	url :urlData
+	type :GET
+	parameters:testparams
+];
+//info response;
+apiResponse = response.get("response");
+apiResult = apiResponse.get("result");
+for each  results in apiResult
+{
+	//BalanceCount = results.get("BalanceCount");
+	Code = results.get("Code");
+	//CCL   Caretaker Sickness Leave
+	if(Code == "CCL")
+	{
+		CCL_AvailedCount = results.get("AvailedCount");
+		Total_AvailedCount = Total_AvailedCount + CCL_AvailedCount;
+	}
+	//FSL   Family Sickness Leave
+	if(Code == "FSL")
+	{
+		FSL_AvailedCount = results.get("AvailedCount");
+		Total_AvailedCount = Total_AvailedCount + FSL_AvailedCount;
+	}
+	//Child Sickness Leave
+	if(Code == "CSL")
+	{
+		CSL_AvailedCount = results.get("AvailedCount");
+		Total_AvailedCount = Total_AvailedCount + CSL_AvailedCount;
+		//Final_AvailedCount = Daystaken + Total_AvailedCount;
+	}
+}
+if(Total_AvailedCount <= 5)
+{
+	Final_AvailedCount = Total_AvailedCount.toLong() + Daystaken.toLong();
+	if(Final_AvailedCount > 5)
+	{
+		Result.insert("Reasonforleave":"Your Sick Leave Equation is Like this Caretaker Leave : " + CCL_AvailedCount + " Family Sickness Leave : " + FSL_AvailedCount + " Child Sickness Leave : " + CSL_AvailedCount + " , You can capped  5 days per year , Right now your Total is " + Final_AvailedCount + " ");
+		error.insert("errors":Result);
+	}
+	else
+	{
+		error.insert("":"");
+	}
+}
+else
+{
+	error.insert("":"");
+	//Result.insert("Reasonforleave":Final_AvailedCount);
+	//error.insert("errors":Result);
+}
+}
+else
+{
+error.insert("":"");
+}
+if(Leavetype == "Family Sickness Leave")
+{
+Total_AvailedCount = 0;
+Final_AvailedCount = 0;
+CCL_AvailedCount = 0;
+FSL_AvailedCount = 0;
+CSL_AvailedCount = 0;
+Employee_ID = formDetails.get("Employee_ID");
+additionalDetails = recordDetails.get("additionalDetails");
+empid = additionalDetails.get("empid");
+urlData = "https://people.zoho.eu/people/api/leave/getLeaveTypeDetails";
+authtoken = "0cccc0a6a767647a82e45a4ec3503edb";
+// refers to your authtoken
+//userId = "16933000000164015";                            
+testparams = Map();
+testparams.put("authtoken",authtoken);
+testparams.put("userId",empid);
+//resp = invokeUrl(urlData, "GET", testparams);
+response = invokeurl
+[
+	url :urlData
+	type :GET
+	parameters:testparams
+];
+//info response;
+apiResponse = response.get("response");
+apiResult = apiResponse.get("result");
+for each  results in apiResult
+{
+	//BalanceCount = results.get("BalanceCount");
+	Code = results.get("Code");
+	//CCL   Caretaker Sickness Leave
+	if(Code == "CCL")
+	{
+		CCL_AvailedCount = results.get("AvailedCount");
+		Total_AvailedCount = Total_AvailedCount + CCL_AvailedCount;
+	}
+	//FSL   Family Sickness Leave
+	if(Code == "FSL")
+	{
+		FSL_AvailedCount = results.get("AvailedCount");
+		Total_AvailedCount = Total_AvailedCount + FSL_AvailedCount;
+	}
+	//Child Sickness Leave
+	if(Code == "CSL")
+	{
+		CSL_AvailedCount = results.get("AvailedCount");
+		Total_AvailedCount = Total_AvailedCount + CSL_AvailedCount;
+		//Final_AvailedCount = Daystaken + Total_AvailedCount;
+	}
+}
+if(Total_AvailedCount <= 5)
+{
+	Final_AvailedCount = Total_AvailedCount.toLong() + Daystaken.toLong();
+	if(Final_AvailedCount > 5)
+	{
+		Result.insert("Reasonforleave":"Your Sick Leave Equation is Like this Caretaker Leave : " + CCL_AvailedCount + " Family Sickness Leave : " + FSL_AvailedCount + " Child Sickness Leave : " + CSL_AvailedCount + " , You can capped  5 days per year , Right now your Total is " + Final_AvailedCount + " ");
+		error.insert("errors":Result);
+	}
+	else
+	{
+		error.insert("":"");
+	}
+}
+else
+{
+	error.insert("":"");
+	//Result.insert("Reasonforleave":Final_AvailedCount);
+	//error.insert("errors":Result);
+}
+}
+else
+{
+error.insert("":"");
+}
+//sickness Leave end here 
+return error;
